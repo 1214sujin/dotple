@@ -8,6 +8,11 @@ public class HexCodeValidator implements ConstraintValidator<HexCode, String> {
 	@Override
 	public boolean isValid(String valueForValidation, ConstraintValidatorContext constraintValidatorContext) {
 
-		return !(valueForValidation.length() == 7 && valueForValidation.matches("#[\\dA-Z]{6}"));
+		if (valueForValidation == null) return false;
+
+		if (valueForValidation.length() == 8 && valueForValidation.matches("[\\dA-Za-z]{8}"))
+			return true;
+
+		throw new CustomException(ResponseCode.C4001);
 	}
 }

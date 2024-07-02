@@ -60,7 +60,7 @@ create table category (
 	category_id int unsigned primary key auto_increment,
 	user_id int unsigned not null,
 	category_nm varchar(10) not null,
-	color varchar(7) not null check (left(color, 1)='#'),
+	color varchar(8) not null,
 	created timestamp not null,
 	updated timestamp not null,
 

@@ -26,7 +26,7 @@ public class CategoryController {
 	}
 
 	@PostMapping({"", "/"})
-	public ResponseEntity<ResponseMessage<Long>> postRoot(@Valid Req req) {
+	public ResponseEntity<ResponseMessage<Long>> postRoot(@Valid @RequestBody Req req) {
 
 		Long res = categoryService.postRoot(req);
 
@@ -34,7 +34,7 @@ public class CategoryController {
 	}
 
 	@PutMapping("/{categoryId}")
-	public ResponseEntity<ResponseMessage<Long>> putRoot(@PathVariable("categoryId") Long categoryId, @Valid Req req) {
+	public ResponseEntity<ResponseMessage<Long>> putRoot(@PathVariable("categoryId") Long categoryId, @Valid @RequestBody Req req) {
 
 		Long res = categoryService.putRoot(categoryId, req);
 
