@@ -22,5 +22,5 @@ public class Task extends BaseEntity {
 
 	private LocalDate date;
 
-	private Boolean state;
+	private Integer state;
 }

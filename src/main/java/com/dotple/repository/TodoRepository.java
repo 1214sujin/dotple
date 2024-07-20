@@ -16,9 +16,9 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 	Boolean existsByCategoryAndEndGreaterThanEqual(Category category, LocalDate end);
 
 	// 요청된 기간과 겹치는 목표 조회
-	List<Todo> findByCategory_UserAndStartLessThanEqualAndEndLessThanEqual(User user, LocalDate start, LocalDate end);
+	List<Todo> findByCategory_UserAndStartLessThanEqualAndEndGreaterThanEqual(User user, LocalDate start, LocalDate end);
 	default List<Todo> findOverlappedWith(User user, LocalDate start, LocalDate end) {
 		// 시작일이나 종료일 중 하루라도 겹치면 되므로, start와 end를 cross
-		return findByCategory_UserAndStartLessThanEqualAndEndLessThanEqual(user, end, start);
+		return findByCategory_UserAndStartLessThanEqualAndEndGreaterThanEqual(user, end, start);
 	}
 }

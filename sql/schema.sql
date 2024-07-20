@@ -86,7 +86,7 @@ create table task (
 	task_id int unsigned primary key auto_increment,
 	todo_id int unsigned not null,
 	date date not null,
-	state bool not null default 0,
+	state int not null check (state in (0, 1, 2, 3)),	-- 0: 미등록, 1: 미수행, 2: 수행, 3: 숨김
 	created timestamp not null,
 	updated timestamp not null,
 

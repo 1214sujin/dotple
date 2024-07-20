@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -22,7 +23,7 @@ public class TaskController {
 
 	@GetMapping("/{month}")
 	public ResponseEntity<ResponseMessage<List<TaskDTO.Res>>> getRoot(@PathVariable("month")
-																	  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM") String month) {
+																	  @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
 		List<TaskDTO.Res> res = taskService.getRoot(month);
 
 		return ResponseEntity.ok(new ResponseMessage<>(res));

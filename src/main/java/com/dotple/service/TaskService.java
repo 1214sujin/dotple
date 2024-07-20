@@ -15,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -27,17 +29,15 @@ public class TaskService {
 	private final TodoRepository todoRepository;
 	private final TaskRepository taskRepository;
 
-	public List<TaskDTO.Res> getRoot(String monthReq) {
+	public List<TaskDTO.Res> getRoot(YearMonth monthReq) {
 
 		User user = userRepository.findById(1L).get();
 
 		// 조회할 범위 획득
-		int year = Integer.parseInt(monthReq.substring(0, 4));
-		Month month = Month.of(Integer.parseInt(monthReq.substring(4)));
+		int year = monthReq.getYear();
+		Month month = monthReq.getMonth();
 		// 해당하는 달의 첫째날
 		LocalDate start = LocalDate.of(year, month, 1);
-		// 첫째날의 요일 (0: SUN, 1: MON, ..., 6: SAT)
-		int dayOfWeek = start.getDayOfWeek().getValue() % 7;
 		// 해당하는 달의 마지막날
 		LocalDate end = LocalDate.of(year, month, month.length(Year.isLeap(year)));
 
@@ -45,62 +45,50 @@ public class TaskService {
 
 		// monthReq와 기간이 겹치는 todo를 조회
 		List<Todo> overlappedTodos = todoRepository.findOverlappedWith(user, start, end);
-		// task 개수를 초기화
-		List<Integer> taskCntInit = overlappedTodos.stream()
-				.map(todo -> {
-					if (todo.getIterType() == 1)
-						return todo.getIterVal();	// 횟수를 계수할 용도
-					else return 99;	// 횟수 todo가 아닌 것은 99로 초기화
-				}).toList();
-		List<Integer> taskCnt = new ArrayList<>(taskCntInit);
-		// task를 날짜별로 저장
-		List<List<Task>> tasksOfWeek = new ArrayList<>(7);
 
 		for (LocalDate date = start; date.isBefore(end) || date.isEqual(end); date = date.plusDays(1L)) {
 
-			List<Task> tasksOfDay = new ArrayList<>();
-			// 매 date에 대해, 각 todo에 속하는 task를 조회
-			for (int i = 0; i < overlappedTodos.size(); i++) {
+			List<TodoDTO> todosOfDay = new ArrayList<>();
+			// 해당 날짜의 task를 조회
+			for (Todo todo: overlappedTodos) {
 
-				Todo todo = overlappedTodos.get(i);
+				Optional<Task> optionalTask = taskRepository.findByTodoAndDate(todo, date);
+				if (optionalTask.isEmpty()) continue;
+				Task task = optionalTask.get();
 
-				Task task = taskRepository.findByTodoAndDate(todo, date);
+				// 숨김 상태에 있는 task는 넘어감
+				if (task.getState().equals(3))
+					continue;
 
-				// 일주일 동안 특정 todo에 해당하는 task의 개수를 계수
-				taskCnt.set(i, taskCnt.get(i) - 1);
-				tasksOfDay.add(task);
+				TaskDTO taskDTO = TaskDTO.builder()
+						.name(todo.getName())
+						.taskId(task.getId())
+						.iterType(todo.getIterType())
+						.state(task.getState())
+						.alarm(todo.getAlarm() != null)
+						.build();
+
+				Optional<TodoDTO> OptionalTodo = todosOfDay.stream()
+						.filter(t -> t.getCategory().equals(todo.getCategory().getName()))
+						.findAny();
+				if (OptionalTodo.isPresent()) {
+					// 이미 존재하는 TodoDTO.Tasks:task list에 해당 task를 삽입
+					OptionalTodo.get().getTasks().add(taskDTO);
+				} else {
+					// 새로운 task list를 만들어 TodoDTO를 생성 및 todosOfDay에 삽입
+					todosOfDay.add(TodoDTO.builder()
+							.category(todo.getCategory().getName())
+							.color(todo.getCategory().getColor())
+							.tasks(new ArrayList<>(List.of(taskDTO)))
+							.build());
+				}
 			}
-			tasksOfWeek.set(dayOfWeek, tasksOfDay);
 
-			// 카테고리별 할 일 목록
-			// if task.category in res.category
-			//	then res.find(tasks.category).task <- task
-			List<TodoDTO> todos = new ArrayList<>();
-
-			// 일주일이 지났으면 res에 add할 데이터를 결정
-			if (dayOfWeek++ == 6) {
-
-				// 만약 task count가 목표값보다 작으면
-				//	일주일에 대하여 tasksOfWeek을 순회
-				//	 특정한 todo의 task가 없으면 state=0인 task를 삽입
-				//	 각 task를 변환하여 res에 삽입
-				// 만약 task count가 목표값을 달성했다면
-				//	일주일에 대하여 tasksOfWeek을 순회
-				//	 각 task를 변환하여 res에 삽입
-
-				// overlappedTodos의 초반부는 그 주 전체에 대한 조회를 하지 않는다는 문제가 있음!!!
-
-				// 완성된 날짜별 task를 res에 삽입
-				res.add(TaskDTO.Res.builder()
-						.day(date.getDayOfMonth())
-						.todos(todos)
-						.build());
-
-			} else {
-				dayOfWeek = 0;
-				taskCnt = new ArrayList<>(taskCntInit);
-				tasksOfWeek = new ArrayList<>(7);
-			}
+			// 하루치 todoList를 삽입
+			res.add(TaskDTO.Res.builder()
+					.day(date.getDayOfMonth())
+					.todos(todosOfDay)
+					.build());
 		}
 
 		return res;
