@@ -4,16 +4,16 @@ use dotple;
 
 create table `user` (
 	user_id int unsigned primary key auto_increment,
-	username varchar(50) not null,
+	username varchar(255) not null,
 	password varchar(255) not null,
-	nickname varchar(20) not null,
+	nickname varchar(255) not null,
 	created timestamp not null,
 	updated timestamp not null
 );
 
 create table `group` (
 	group_id int unsigned primary key auto_increment,
-	group_nm varchar(50) not null,
+	group_nm varchar(255) not null,
 	group_pw int,
 	manager int unsigned not null,
 	max_user int not null,
@@ -59,7 +59,7 @@ create table eval (
 create table category (
 	category_id int unsigned primary key auto_increment,
 	user_id int unsigned not null,
-	category_nm varchar(10) not null,
+	category_nm varchar(255) not null,
 	color varchar(8) not null,
 	created timestamp not null,
 	updated timestamp not null,
@@ -70,7 +70,7 @@ create table category (
 create table todo (
 	todo_id int unsigned primary key auto_increment,
 	category_id int unsigned not null,
-	todo_nm varchar(10) not null,
+	todo_nm varchar(255) not null,
 	start date not null,
 	end date not null,
 	iter_type int not null check (iter_type in (0, 1, 2)),	-- 0: 없음(임시), 1: 횟수, 2: 요일
@@ -90,7 +90,8 @@ create table task (
 	created timestamp not null,
 	updated timestamp not null,
 
-	foreign key (todo_id) references todo (todo_id)
+	foreign key (todo_id) references todo (todo_id),
+    unique (todo_id, date)
 );
 
 create table sharing (
