@@ -3,7 +3,6 @@ package com.dotple.dto.task;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.List;
@@ -19,7 +18,6 @@ public class TaskDTO {
 	private Boolean alarm;
 
 	@Getter
-	@Setter
 	public static class Req {
 
 		@NotNull
@@ -34,5 +32,12 @@ public class TaskDTO {
 
 		private Integer day;
 		private List<TodoDTO> todos;
+	}
+
+	@Getter
+	@Builder
+	public static class State {
+
+		private Integer state;
 	}
 }

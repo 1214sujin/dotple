@@ -75,7 +75,7 @@ create table todo (
 	end date not null,
 	iter_type int not null check (iter_type in (0, 1, 2)),	-- 0: 없음(임시), 1: 횟수, 2: 요일
 	iter_val int not null,
-	alarm bigint,
+	alarm time,
 	created timestamp not null,
 	updated timestamp not null,
 
@@ -86,7 +86,7 @@ create table task (
 	task_id int unsigned primary key auto_increment,
 	todo_id int unsigned not null,
 	date date not null,
-	state int not null check (state in (0, 1, 2, 3)),	-- 0: 미등록, 1: 미수행, 2: 수행, 3: 숨김
+	state int not null check (state in (0, 1, 2, 3)),	-- 0: 숨김, 1: 미등록, 2: 미수행, 3: 수행
 	created timestamp not null,
 	updated timestamp not null,
 

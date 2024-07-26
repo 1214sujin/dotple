@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -31,6 +32,5 @@ public class Todo extends BaseEntity {
 
 	private Integer iterVal;
 
-	@Column(columnDefinition = "bigint")
-	private Long alarm;
+	private LocalTime alarm;
 }
