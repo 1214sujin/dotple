@@ -10,7 +10,7 @@ public class HexCodeValidator implements ConstraintValidator<HexCode, String> {
 
 		if (valueForValidation == null) return false;
 
-		if (valueForValidation.length() == 8 && valueForValidation.matches("[\\dA-Za-z]{8}"))
+		if (valueForValidation.length() == 8 && valueForValidation.matches("[\\dA-Fa-f]{8}"))
 			return true;
 
 		throw new CustomException(ResponseCode.C4001);
