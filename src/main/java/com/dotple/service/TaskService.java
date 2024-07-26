@@ -1,5 +1,7 @@
 package com.dotple.service;
 
+import com.dotple.controller.advice.CustomException;
+import com.dotple.controller.advice.ResponseCode;
 import com.dotple.domain.Task;
 import com.dotple.domain.Todo;
 import com.dotple.domain.User;
@@ -9,6 +11,7 @@ import com.dotple.repository.TaskRepository;
 import com.dotple.repository.TodoRepository;
 import com.dotple.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -92,5 +96,69 @@ public class TaskService {
 		}
 
 		return res;
+	}
+
+	public TaskDTO.State putRegistration(Long taskId) {
+
+		User user = userRepository.findById(1L).get();
+
+		// 변경하려는 task를 획득
+		Task task = taskRepository.findById(taskId).get();
+
+		// 변경하려는 task가 요청 user의 것인지 확인 (비정상 접근)
+		if (task.getTodo().getCategory().getUser() != user)
+			throw new CustomException(ResponseCode.C4040);
+
+		// 횟수 todo가 맞는지 확인 (비정상 접근)
+		Todo todo = task.getTodo();
+		if (!todo.getIterType().equals(1))
+			throw new CustomException(ResponseCode.C4091);
+
+		// 목표 달성 여부 확인을 위해, 해당 task가 속한 일주일의 범위 획득
+		LocalDate date = task.getDate();
+		int day = date.getDayOfWeek().getValue() % 7;	// 0: SUN, 1: MON, ..., 6: SAT
+		LocalDate start = date.minusDays(day);
+		LocalDate end = date.plusDays(6 - day);
+
+		// task 상태 변경
+		switch (task.getState()) {
+
+			// 미등록 상태라면, 등록 상태로 변경
+			case 1 -> {
+				// 일주일 내의 다른 task의 개수를 조회하여 목표 개수를 달성했는지 확인
+				Long otherTaskCnt = taskRepository.countTasksOfSameTodo(todo, start, end);
+
+				// 이미 목표가 달성 되어 있으면 추가적으로 등록할 수 없음 (비정상 접근)
+				if (otherTaskCnt >= todo.getIterVal())
+					throw new CustomException(ResponseCode.C4091);
+
+				task.setState(2);
+
+				// 변경으로 인해 목표가 달성되었다면, 다른 task 중 미등록 상태인 것들을 숨김 상태로 변경
+				if (otherTaskCnt + 1 == todo.getIterVal()) {
+					int modifiedRows = taskRepository.updateStateByTodoAndStateAndDateBetween(0, todo, 1, start, end);
+					log.info("{} rows are turned from '1' to '0'", modifiedRows);
+				}
+			}
+
+			// 등록 상태라면, 미등록 상태로 변경
+			case 2 -> {
+
+				task.setState(1);
+
+				// 해당 주에 숨김 상태인 task가 있다면 미등록 상태로 변경
+				// (조건에 해당하지 않으면 변경 값도 없을 것이므로, 조건을 확인하지 않기로 함)
+				int modifiedRows = taskRepository.updateStateByTodoAndStateAndDateBetween(1, todo, 0, start, end);
+				log.info("{} rows are turned from '0' to '1'", modifiedRows);
+			}
+
+			// 상태 변경 조건에 부합하지 않으면 변경하지 않음
+			default -> throw new CustomException(ResponseCode.C4091);
+		}
+		taskRepository.save(task);
+
+		return TaskDTO.State.builder()
+				.state(task.getState())
+				.build();
 	}
 }
