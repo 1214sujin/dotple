@@ -32,4 +32,12 @@ public class TaskController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(res));
 	}
+
+	@PutMapping("/{taskId}/performance")
+	public ResponseEntity<ResponseMessage<TaskDTO.State>> putPerformance(@PathVariable("taskId") Long taskId) {
+
+		TaskDTO.State res = taskService.putPerformance(taskId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(res));
+	}
 }

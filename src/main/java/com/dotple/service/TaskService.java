@@ -161,4 +161,34 @@ public class TaskService {
 				.state(task.getState())
 				.build();
 	}
+
+	public TaskDTO.State putPerformance(Long taskId) {
+
+		User user = userRepository.findById(1L).get();
+
+		// 변경하려는 task를 획득
+		Task task = taskRepository.findById(taskId).get();
+
+		// 변경하려는 task가 요청 user의 것인지 확인 (비정상 접근)
+		if (task.getTodo().getCategory().getUser() != user)
+			throw new CustomException(ResponseCode.C4040);
+
+		// task 상태 변경
+		switch (task.getState()) {
+
+			// 미수행 상태라면, 수행 상태로 변경
+			case 2 -> task.setState(3);
+
+			// 수행 상태라면, 미수행 상태로 변경
+			case 3 -> task.setState(2);
+
+			// 상태 변경 조건에 부합하지 않으면 변경하지 않음
+			default -> throw new CustomException(ResponseCode.C4091);
+		}
+		taskRepository.save(task);
+
+		return TaskDTO.State.builder()
+				.state(task.getState())
+				.build();
+	}
 }
