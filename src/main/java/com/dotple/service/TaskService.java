@@ -11,7 +11,7 @@ import com.dotple.repository.TaskRepository;
 import com.dotple.repository.TodoRepository;
 import com.dotple.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
+@Log4j2
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -35,6 +35,7 @@ public class TaskService {
 
 	public List<TaskDTO.Res> getRoot(YearMonth monthReq) {
 
+		// TODO: 세션에서 사용자 정보 획득
 		User user = userRepository.findById(1L).get();
 
 		// 조회할 범위 획득
