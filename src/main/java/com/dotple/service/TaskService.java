@@ -61,7 +61,7 @@ public class TaskService {
 				Task task = optionalTask.get();
 
 				// 숨김 상태에 있는 task는 넘어감
-				if (task.getState().equals(3))
+				if (task.getState().equals(0))
 					continue;
 
 				TaskDTO taskDTO = TaskDTO.builder()
