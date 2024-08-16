@@ -21,4 +21,11 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 		// 시작일이나 종료일 중 하루라도 겹치면 되므로, start와 end를 cross
 		return findByCategory_UserAndStartLessThanEqualAndEndGreaterThanEqual(user, end, start);
 	}
+
+	// 요청된 기간과 겹치면서 이름이 동일한 목표 존재 여부
+	Boolean existsByCategory_UserAndStartLessThanEqualAndEndGreaterThanEqualAndName(User user, LocalDate start, LocalDate end, String name);
+	default Boolean existsOverlappedWithByName(User user, LocalDate start, LocalDate end, String name) {
+		// 시작일이나 종료일 중 하루라도 겹치면 되므로, start와 end를 cross
+		return existsByCategory_UserAndStartLessThanEqualAndEndGreaterThanEqualAndName(user, end, start, name);
+	}
 }
